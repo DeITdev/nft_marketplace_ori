@@ -2,24 +2,17 @@ import React, { useState, useEffect } from 'react';
 import Web3modal from 'web3modal';
 import { ethers } from 'ethers';
 import axios from 'axios';
-import { create as ipfsHttpClient } from 'ipfs-http-client';
 
 import { MarketAddress, MarketAddressABI } from './constants';
 
-const projectId = process.env.NEXT_PUBLIC_INFURA_API_KEY;
-const projectSecretKey = process.env.NEXT_PUBLIC_INFURA_API_SECRET;
-const auth = `Basic ${Buffer.from(`${projectId}:${projectSecretKey}`).toString('base64')}`;
+// Alchemy RPC for Sepolia
+const ALCHEMY_KEY = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY;
+const sepoliaRpcUrl = `https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_KEY}`;
 
-const sepoliaRpcUrl = 'https://sepolia.infura.io/v3/eab413085f974ad68d5bc1ba3889e702';
-
-const client = ipfsHttpClient({
-  host: 'ipfs.infura.io',
-  port: 5001,
-  protocol: 'https',
-  headers: {
-    authorization: auth,
-  },
-});
+// Pinata for IPFS
+const PINATA_API_KEY = process.env.NEXT_PUBLIC_PINATA_API_KEY;
+const PINATA_SECRET_KEY = process.env.NEXT_PUBLIC_PINATA_SECRET_KEY;
+const PINATA_GATEWAY = 'https://copper-precious-chameleon-276.mypinata.cloud/ipfs/'; // Your dedicated gateway
 
 const fetchContract = (signerOrProvider) => new ethers.Contract(MarketAddress, MarketAddressABI, signerOrProvider);
 
@@ -28,10 +21,10 @@ export const NFTContext = React.createContext();
 export const NFTProvider = ({ children }) => {
   const [currentAccount, setCurrentAccount] = useState('');
   const [isLoadingNFT, setIsLoadingNFT] = useState(false);
-  const nftCurrency = 'DeIT';
+  const nftCurrency = 'ETH';
 
   const checkIfWalletIsConnected = async () => {
-    if (!window.ethereum) return alert('Please install MeqaMask');
+    if (!window.ethereum) return alert('Please install MetaMask');
 
     const accounts = await window.ethereum.request({ method: 'eth_accounts' });
 
@@ -58,13 +51,27 @@ export const NFTProvider = ({ children }) => {
 
   const uploadToIPFS = async (file) => {
     try {
-      const added = await client.add({ content: file });
+      const formData = new FormData();
+      formData.append('file', file);
 
-      const url = `https://ipfs.io/ipfs/${added.path}`;
+      const response = await axios.post(
+        'https://api.pinata.cloud/pinning/pinFileToIPFS',
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            pinata_api_key: PINATA_API_KEY,
+            pinata_secret_api_key: PINATA_SECRET_KEY,
+          },
+        },
+      );
 
+      // Use your dedicated gateway
+      const url = `${PINATA_GATEWAY}${response.data.IpfsHash}`;
+      console.log('✅ Image uploaded to IPFS:', url);
       return url;
     } catch (error) {
-      console.log('Error uploading file: ', error);
+      console.log('Error uploading file to IPFS:', error);
     }
   };
 
@@ -76,22 +83,34 @@ export const NFTProvider = ({ children }) => {
     const data = JSON.stringify({ name, description, image: fileUrl });
 
     try {
-      const added = await client.add(data);
+      const response = await axios.post(
+        'https://api.pinata.cloud/pinning/pinJSONToIPFS',
+        JSON.parse(data),
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            pinata_api_key: PINATA_API_KEY,
+            pinata_secret_api_key: PINATA_SECRET_KEY,
+          },
+        },
+      );
 
-      const url = `https://ipfs.io/ipfs/${added.path}`;
+      // Use your dedicated gateway
+      const url = `${PINATA_GATEWAY}${response.data.IpfsHash}`;
+      console.log('✅ Metadata uploaded to IPFS:', url);
 
       await createSale(url, price);
 
       router.push('/');
     } catch (error) {
-      console.log('Error uploading file: ', error);
+      console.log('Error uploading metadata to IPFS:', error);
     }
   };
 
   const createSale = async (url, formInputPrice, isReselling, id) => {
     const web3Modal = new Web3modal();
     const connection = await web3Modal.connect();
-    const provider = new ethers.providers.Web3Provider(connection, 'any');
+    const provider = new ethers.providers.Web3Provider(connection);
     const signer = provider.getSigner();
 
     const price = ethers.utils.parseUnits(formInputPrice, 'ether');
@@ -139,7 +158,7 @@ export const NFTProvider = ({ children }) => {
 
     const web3Modal = new Web3modal();
     const connection = await web3Modal.connect();
-    const provider = new ethers.providers.Web3Provider(connection, 'any');
+    const provider = new ethers.providers.Web3Provider(connection);
     const signer = provider.getSigner();
 
     const contract = fetchContract(signer);
@@ -171,7 +190,7 @@ export const NFTProvider = ({ children }) => {
   const buyNFT = async (nft) => {
     const web3Modal = new Web3modal();
     const connection = await web3Modal.connect();
-    const provider = new ethers.providers.Web3Provider(connection, 'any');
+    const provider = new ethers.providers.Web3Provider(connection);
     const signer = provider.getSigner();
 
     const contract = fetchContract(signer);
@@ -186,7 +205,20 @@ export const NFTProvider = ({ children }) => {
   };
 
   return (
-    <NFTContext.Provider value={{ nftCurrency, currentAccount, connectWallet, uploadToIPFS, createNFT, fetchNFTs, fetchMyNFTsOrListedNFTs, buyNFT, createSale, isLoadingNFT }}>
+    <NFTContext.Provider
+      value={{
+        nftCurrency,
+        currentAccount,
+        connectWallet,
+        uploadToIPFS,
+        createNFT,
+        fetchNFTs,
+        fetchMyNFTsOrListedNFTs,
+        buyNFT,
+        createSale,
+        isLoadingNFT,
+      }}
+    >
       {children}
     </NFTContext.Provider>
   );

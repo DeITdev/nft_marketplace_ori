@@ -2,7 +2,15 @@ const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
   images: {
-    domains: ['ipfs.io'],
+    domains: [
+      'copper-precious-chameleon-276.mypinata.cloud',
+      'gateway.pinata.cloud',
+      'ipfs.io',
+      'dweb.link',
+      'cloudflare-ipfs.com',
+      '4everland.io',
+      'static.vecteezy.com', // placeholder image domain
+    ],
   },
   // server: {
   //   host: '0.0.0.0', // Listen on all network interfaces
