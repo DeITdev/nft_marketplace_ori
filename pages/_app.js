@@ -12,7 +12,7 @@ const MyApp = ({ Component, pageProps }) => (
       <Head>
         <title>BatikNFT - Authentic Batik Marketplace</title>
         <meta name="description" content="BatikNFT - Digital authentication for authentic Indonesian Batik" />
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/iconBatik.svg" />
       </Head>
 
       <div className="dark:bg-nft-dark bg-white min-h-screen">

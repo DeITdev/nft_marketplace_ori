@@ -17,7 +17,7 @@ const ResellNFT = () => {
 
     const { data } = await axios.get(tokenURI);
 
-    setPrice(data.price);
+    // Don't set price from metadata - let user enter new price
     setImage(data.image);
   };
 
@@ -34,7 +34,7 @@ const ResellNFT = () => {
   }
 
   const resell = async () => {
-    await createSale(tokenId, price, true, tokenId);
+    await createSale(tokenURI, price, true, tokenId);
 
     router.push('/');
   };

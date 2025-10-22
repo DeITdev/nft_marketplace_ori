@@ -20,7 +20,7 @@ const Footer = () => {
         <div className="flexStart flex-1 flex-col">
           <div className="flexCenter cursor-pointer">
             <Image src={images.logo02} objectFit="contain" width={32} height={32} alt="logo" />
-            <p className=" dark:text-white text-nft-dark font-semibold text-lg ml-1">BatikNFT</p>
+            <p className=" dark:text-white text-nft-dark font-semibold text-lg ml-2">BatikNFT</p>
           </div>
           <p className="font-poppins dark:text-white text-nft-black-1 font-semibold text-base mt-6">Get the latest updates</p>
           <div className="flexBetween md:w-full minlg:w-557 w-357 mt-6 dark:bg-nft-black-2 bg-white border dark:border-nft-black-2 border-nft-gray-2 rounded-md">

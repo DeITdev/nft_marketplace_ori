@@ -101,20 +101,18 @@ const NFTDetails = () => {
   if (isLoading) return <Loader />;
 
   return (
-    <div className="relative flex justify-center md:flex-col min-h-screen">
-      <div className="relative flex-1 flexCenter sm:px-4 p-12 border-r md:border-r-0 md:border-b dark:border-nft-black-1 border-nft-gray-1">
-        <div className="relative w-557 minmd:w-2/3 minmd:h-2/3 sm:w-full sm:h-300 h-557">
+    <div className="relative flex justify-center md:flex-col min-h-[calc(100vh-66px)]">
+      <div className="relative flex-1 flexCenter sm:px-4 p-12 border-r md:border-r-0 md:border-b dark:border-nft-black-1 border-nft-gray-1 md:overflow-visible overflow-hidden">
+        <div className="relative w-full max-w-[720px] md:h-[500px] sm:h-[300px] h-[calc(100vh-132px)] rounded-xl shadow-lg overflow-hidden">
           <Image
             src={nft.image}
             objectFit="cover"
-            className="rounded-xl shadow-lg"
             layout="fill"
           />
         </div>
       </div>
 
-      <div className="flex-1 justify-start sm:px-4 p-12 sm:pb-4 md:max-h-full max-h-screen overflow-y-auto no-scrollbar">
-        {/* Print-only header */}
+      <div className="flex-1 justify-start sm:px-4 p-12 sm:pb-4 md:max-h-none md:overflow-visible max-h-[calc(100vh-66px)] overflow-y-auto no-scrollbar">
         <div className="hidden print:block mb-6 pb-4 border-b-2 border-gray-300">
           <h1 className="font-poppins text-nft-black-1 font-bold text-3xl text-center">Digital Certificate of Authenticity</h1>
           <p className="font-poppins text-nft-black-1 text-sm text-center mt-2">BatikNFT - Blockchain Verified</p>
@@ -122,7 +120,6 @@ const NFTDetails = () => {
 
         <div className="flex flex-row sm:flex-col justify-between items-start">
           <h2 className="font-poppins dark:text-white text-nft-black-1 font-semibold text-2xl minlg:text-3xl">{nft.name}</h2>
-          {/* Print button only for owners */}
           {isOwner && (
             <Button
               btnName="Print Certificate"
@@ -158,7 +155,6 @@ const NFTDetails = () => {
             <p className="font-poppins dark:text-white text-nft-black-1 font-normal text-base">{nft.description}</p>
           </div>
 
-          {/* Show Origin and Pattern Type for all users */}
           {nft.attributes && nft.attributes.length > 0 && (
             <div className="mt-6 grid grid-cols-2 gap-4">
               {nft.attributes
@@ -177,7 +173,6 @@ const NFTDetails = () => {
           )}
         </div>
 
-        {/* Digital Certificate - Only show for owners */}
         {isOwner && nft.attributes && nft.attributes.length > 0 && (
           <div className="mt-10 flex flex-col">
             <div className="w-full border-b dark:border-nft-black-1 border-nft-gray-1 flex flex-row">
@@ -200,7 +195,7 @@ const NFTDetails = () => {
                     </p>
                   </div>
                 ))}
-              {/* Purchase Date */}
+
               {nft.attributes.find((attr) => attr.trait_type === 'Authentication Date') && (
                 <div className="dark:bg-nft-black-3 bg-nft-gray-1 rounded-lg p-3">
                   <p className="font-poppins dark:text-white text-nft-black-1 text-xs font-normal opacity-70">
@@ -213,7 +208,6 @@ const NFTDetails = () => {
               )}
             </div>
 
-            {/* Barcode Image for owners */}
             {nft.attributes.find((attr) => attr.trait_type === 'Barcode') && (
               <div className="mt-6 dark:bg-white bg-white border dark:border-nft-black-1 border-nft-gray-2 rounded-lg w-full p-4 flex flex-col items-center">
                 <p className="font-poppins dark:text-nft-black-1 text-nft-black-1 text-sm font-normal opacity-70 mb-3">Barcode for Verification</p>
@@ -258,7 +252,6 @@ const NFTDetails = () => {
               )}
         </div>
 
-        {/* Print-only footer */}
         <div className="hidden print:block mt-10 pt-6 border-t border-gray-300">
           <p className="font-poppins text-nft-black-1 text-sm text-center">
             Verified on Blockchain - BatikNFT Digital Certificate
