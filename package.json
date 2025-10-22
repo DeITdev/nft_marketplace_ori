@@ -21,6 +21,7 @@
     "next": "12.1.0",
     "next-themes": "0.1.1",
     "react": "17.0.2",
+    "react-barcode": "^1.6.1",
     "react-dom": "17.0.2",
     "react-dropzone": "12.0.4",
     "web3modal": "1.9.5"

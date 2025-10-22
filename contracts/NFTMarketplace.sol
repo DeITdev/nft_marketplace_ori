@@ -91,6 +91,26 @@ contract NFTMarketplace is ERC721URIStorage {
         return newTokenId;
     }
 
+    /* Mints a token without listing it on the marketplace */
+    function mintToken(string memory tokenURI) public returns (uint) {
+        _tokenIds.increment();
+        uint256 newTokenId = _tokenIds.current();
+        _mint(msg.sender, newTokenId);
+        _setTokenURI(newTokenId, tokenURI);
+
+        // Create a market item entry but mark as sold (owned by minter)
+        idToMarketItem[newTokenId] = MarketItem(
+            newTokenId,
+            payable(address(0)),
+            payable(msg.sender),
+            0,
+            true
+        );
+        _itemsSold.increment();
+
+        return newTokenId;
+    }
+
     function createMarketItem(uint256 tokenId, uint256 price) private {
         // require a certain CONDITION, in this case price greater than 0
         require(price > 0, "Price must be at least 1 wei");
@@ -142,6 +162,30 @@ contract NFTMarketplace is ERC721URIStorage {
         _itemsSold.decrement();
 
         _transfer(msg.sender, address(this), tokenId);
+    }
+
+    /* allows seller to cancel/unlist their listed NFT */
+    function cancelListing(uint256 tokenId) public {
+        require(
+            idToMarketItem[tokenId].seller == msg.sender,
+            "Only the seller can cancel this listing"
+        );
+        require(
+            idToMarketItem[tokenId].sold == false,
+            "Cannot cancel a sold item"
+        );
+        require(
+            idToMarketItem[tokenId].owner == address(this),
+            "Item is not currently listed"
+        );
+
+        // Transfer the NFT back to the seller
+        idToMarketItem[tokenId].owner = payable(msg.sender);
+        idToMarketItem[tokenId].seller = payable(address(0));
+        idToMarketItem[tokenId].sold = true; // Mark as sold to remove from marketplace
+        _itemsSold.increment(); // Increment sold counter to maintain unsold count
+
+        _transfer(address(this), msg.sender, tokenId);
     }
 
     /* Creates the sale of a marketplace item */

@@ -93,12 +93,61 @@ export const NFTProvider = ({ children }) => {
     await transaction.wait();
   };
 
-  const createNFT = async (formInput, fileUrl, router) => {
+  const mintNFT = async (url) => {
+    const web3Modal = new Web3modal();
+    const connection = await web3Modal.connect();
+    const provider = new ethers.providers.Web3Provider(connection);
+    const signer = provider.getSigner();
+
+    const contract = fetchContract(signer);
+
+    // Mint NFT without listing for sale using the new mintToken function
+    const transaction = await contract.mintToken(url);
+
+    setIsLoadingNFT(true);
+    await transaction.wait();
+  };
+
+  const createNFT = async (formInput, fileUrl, router, serialNumber, barcodeNumber, origin, patternType, listForSale = true) => {
     const { name, description, price } = formInput;
 
-    if (!name || !description || !price || !fileUrl) return;
+    if (!name || !description || !fileUrl) return;
+    if (listForSale && !price) return;
 
-    const data = JSON.stringify({ name, description, image: fileUrl });
+    // Create metadata with Batik attributes including serial number and barcode
+    const metadata = {
+      name,
+      description,
+      image: fileUrl,
+      attributes: [
+        {
+          trait_type: 'Serial Number',
+          value: serialNumber,
+        },
+        {
+          trait_type: 'Barcode',
+          value: barcodeNumber,
+        },
+        {
+          trait_type: 'Asset Type',
+          value: 'Batik',
+        },
+        {
+          trait_type: 'Authentication Date',
+          value: new Date().toISOString(),
+        },
+        {
+          trait_type: 'Origin',
+          value: origin || 'Unknown',
+        },
+        {
+          trait_type: 'Pattern Type',
+          value: patternType || 'Traditional',
+        },
+      ],
+    };
+
+    const data = JSON.stringify(metadata);
 
     try {
       const response = await axios.post(
@@ -116,8 +165,14 @@ export const NFTProvider = ({ children }) => {
       // Use your dedicated gateway
       const url = `${PINATA_GATEWAY}${response.data.IpfsHash}`;
       console.log('✅ Metadata uploaded to IPFS:', url);
+      console.log('📊 Serial Number:', serialNumber);
+      console.log('📊 Barcode:', barcodeNumber);
 
-      await createSale(url, price);
+      if (listForSale) {
+        await createSale(url, price);
+      } else {
+        await mintNFT(url);
+      }
 
       router.push('/');
     } catch (error) {
@@ -135,7 +190,7 @@ export const NFTProvider = ({ children }) => {
 
     const items = await Promise.all(data.map(async ({ tokenId, seller, owner, price: unformattedPrice }) => {
       const tokenURI = await contract.tokenURI(tokenId);
-      const { data: { image, name, description } } = await axios.get(tokenURI);
+      const { data: { image, name, description, attributes } } = await axios.get(tokenURI);
       const price = ethers.utils.formatUnits(unformattedPrice.toString(), 'ether');
 
       return {
@@ -146,6 +201,7 @@ export const NFTProvider = ({ children }) => {
         image,
         name,
         description,
+        attributes,
         tokenURI,
       };
     }));
@@ -169,7 +225,7 @@ export const NFTProvider = ({ children }) => {
 
     const items = await Promise.all(data.map(async ({ tokenId, seller, owner, price: unformattedPrice }) => {
       const tokenURI = await contract.tokenURI(tokenId);
-      const { data: { image, name, description } } = await axios.get(tokenURI);
+      const { data: { image, name, description, attributes } } = await axios.get(tokenURI);
       const price = ethers.utils.formatUnits(unformattedPrice.toString(), 'ether');
 
       return {
@@ -180,6 +236,7 @@ export const NFTProvider = ({ children }) => {
         image,
         name,
         description,
+        attributes,
         tokenURI,
       };
     }));
@@ -204,6 +261,21 @@ export const NFTProvider = ({ children }) => {
     setIsLoadingNFT(false);
   };
 
+  const cancelListing = async (tokenId) => {
+    const web3Modal = new Web3modal();
+    const connection = await web3Modal.connect();
+    const provider = new ethers.providers.Web3Provider(connection);
+    const signer = provider.getSigner();
+
+    const contract = fetchContract(signer);
+
+    const transaction = await contract.cancelListing(tokenId);
+
+    setIsLoadingNFT(true);
+    await transaction.wait();
+    setIsLoadingNFT(false);
+  };
+
   return (
     <NFTContext.Provider
       value={{
@@ -216,6 +288,7 @@ export const NFTProvider = ({ children }) => {
         fetchMyNFTsOrListedNFTs,
         buyNFT,
         createSale,
+        cancelListing,
         isLoadingNFT,
       }}
     >

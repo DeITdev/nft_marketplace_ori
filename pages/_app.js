@@ -10,8 +10,8 @@ const MyApp = ({ Component, pageProps }) => (
   <NFTProvider>
     <ThemeProvider attribute="class">
       <Head>
-        <title>NFT Marketplace</title>
-        <meta name="description" content="NFT Marketplace application" />
+        <title>BatikNFT - Authentic Batik Marketplace</title>
+        <meta name="description" content="BatikNFT - Digital authentication for authentic Indonesian Batik" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
